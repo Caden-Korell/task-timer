@@ -1,4 +1,4 @@
-Task Timer by Caden Korell.
+Command Line Task Timer by Caden Korell.
 
 - start a task
 - check on status of a task
