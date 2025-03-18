@@ -7,16 +7,24 @@ from datetime import datetime, timedelta
 DATA_FILE = "timesheet.json"
 
 def load_data():
+    '''Load data from the json file.'''
     if not os.path.exists(DATA_FILE):
         return {"tasks": [], "current": None}
-    with open(DATA_FILE, "r") as f:
-        return json.load(f)
-
+    try:
+        with open(DATA_FILE, "r") as file:
+            return json.load(file)
+    except (json.JSONDecodeError, ValueError):
+        # if the file gets corrupted somehow
+        print("Warning: Timesheet file is corrupted. Resetting...")
+        return {"tasks": [], "current": None}
+    
 def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+    '''Write new data on the json file.'''
+    with open(DATA_FILE, "w") as file:
+        json.dump(data, file, indent=4)
 
 def start_task(task_name):
+    '''Start a task named by the user and save it with the start time.'''
     data = load_data()
     if data["current"]:
         print(f"Stopping current task '{data['current']['name']}' before starting new one.")
@@ -27,9 +35,10 @@ def start_task(task_name):
         "start_time": time.time()
     }
     save_data(data)
-    print(f"Started task: {task_name}")
+    print(f"\nStarted task: {task_name}")
 
 def stop_task():
+    '''Stop the task and calculate the duration.'''
     data = load_data()
     if not data["current"]:
         print("No task is currently running.")
@@ -48,6 +57,7 @@ def stop_task():
     save_data(data)
 
 def status():
+    '''Check the current status of the tasks being timed.'''
     data = load_data()
     if not data["current"]:
         print("No task is currently running.")
@@ -57,11 +67,12 @@ def status():
     print(f"Currently running: {task['name']} (Elapsed: {str(timedelta(seconds=int(duration)))})")
 
 def summary():
+    '''Print the current timesheet for the user.'''
     data = load_data()
     if not data["tasks"]:
         print("No tasks logged yet.")
         return
-    print("\n--- Time Sheet Summary ---")
+    print("\n        Timesheet         n")
     total = 0
     for task in data["tasks"]:
         duration = int(task["duration"])
@@ -71,7 +82,7 @@ def summary():
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python task_timer.py [start <task_name> | stop | status | summary]")
+        print("Usage: python task_timer.py [start 'task_name' | stop | status | summary]")
         return
     command = sys.argv[1].lower()
 
@@ -89,3 +100,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
